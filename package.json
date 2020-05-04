@@ -1,0 +1,36 @@
+{
+  "name": "corona4kids-game",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "build:dev": "npx webpack --mode development",
+    "build:prod": "npx webpack --mode production",
+    "build": "npm run build:prod",
+    "watch": "npx webpack-dev-server -d --open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pisker/corona4kids-game.git"
+  },
+  "author": "Tim Noack",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pisker/corona4kids-game/issues"
+  },
+  "homepage": "https://github.com/pisker/corona4kids-game#readme",
+  "devDependencies": {
+    "clean-webpack-plugin": "^3.0.0",
+    "copyfiles": "^2.2.0",
+    "file-loader": "^6.0.0",
+    "html-webpack-plugin": "^4.3.0",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
+  },
+  "dependencies": {
+    "pixi.js": "^5.2.3",
+    "pixi.js-keyboard": "^1.0.9",
+    "pixi.js-mouse": "^1.0.4"
+  }
+}
