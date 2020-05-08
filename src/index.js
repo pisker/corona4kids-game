@@ -15,7 +15,7 @@ if(document.getElementById("gameContent") === null) { // should be for testing p
     element.style.x = "0";
     element.style.y = "0";
     element.style.width = "100%";
-    element.style.height = "500px";
+    element.style.height = "300px";
     document.body.appendChild(element);
 }
 

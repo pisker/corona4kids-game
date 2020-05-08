@@ -1,20 +1,21 @@
-import ballonSrc from './media/Heißluftballon PNG.png';
+import ballonSrc from './media/Heißluftballon.png';
 
 import * as PIXI from 'pixi.js'
 import * as Keyboard from 'pixi.js-keyboard';
 import * as Mouse from 'pixi.js-mouse';
 
 import * as SceneManager from './scene.js';
-
+import * as ItemManager from './item.js';
 
 
 /** @type {PIXI.Application} */
 var app;
 
 var scenesContainer;
+var itemsContainer;
 var ballon;
 
-const backgroundHeightPx = 658;
+const backgroundHeightPx = 500;
 
 async function initGame() {
     let gameElement = document.getElementById("gameContent");
@@ -30,6 +31,7 @@ async function initGame() {
         .add(ballonSrc);
 
     SceneManager.addResources(resLoader);
+    ItemManager.addResources(resLoader);
 
     gameElement.appendChild(app.view); // add canvas to body
     resLoader.load(setup); // load textures
@@ -40,10 +42,15 @@ function setup() {
     scenesContainer = new PIXI.Container();
     SceneManager.initScenes(scenesContainer, app);
     app.stage.addChild(scenesContainer);
+
+    itemsContainer = new PIXI.Container();
+    ItemManager.initItems(itemsContainer, app);
+    app.stage.addChild(itemsContainer);
     
     // init ballon sprite
     ballon = new PIXI.Sprite(app.loader.resources[ballonSrc].texture);
     ballon.anchor.set(0.5, 0.2);
+    ballon.scale.set(0.5);
 
     resize(); // MUST BE CALLED BEFORE addChild(ballon)!
     app.stage.addChild(ballon);
@@ -61,6 +68,7 @@ var v = 0;
 var a = 0;
 function update(delta) {
     SceneManager.updateScenes(delta);
+    ItemManager.updateItems(delta);
 
     rot+= 0.01*delta;
     ballon.rotation = 0.5*Math.sin(rot)+0.2;
@@ -92,7 +100,7 @@ function resize() {
     // resize and move ballon
     ballon.x = width * 0.3;
     ballon.y = app.stage.height / 2;
-    ballon.scale.set(0.5);
+    ballon.scale.set(0.2);
 }
 
 
