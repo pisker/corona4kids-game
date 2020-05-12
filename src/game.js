@@ -1,4 +1,4 @@
-import ballonSrc from './media/HeißluftballonTim.png';
+import ballonSrc from './media/Heißluftballon.png';
 
 import * as PIXI from 'pixi.js'
 import * as Keyboard from 'pixi.js-keyboard';
