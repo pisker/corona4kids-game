@@ -26,10 +26,12 @@
     "html-webpack-plugin": "^4.3.0",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
+    "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "pixi.js": "^5.2.3",
+    "pixi-plugin-bump": "^1.1.8",
+    "pixi-text-input": "^1.0.5",
+    "pixi.js": "^5.2.4",
     "pixi.js-keyboard": "^1.0.9",
     "pixi.js-mouse": "^1.0.4"
   }

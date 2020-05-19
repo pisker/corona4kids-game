@@ -10,13 +10,17 @@ import corona1Src from './media/corona1.png';
 import corona2Src from './media/corona2.png';
 import corona3Src from './media/corona3.png';
 
-import * as PIXI from 'pixi.js'
+import 'pixi.js';
+import "pixi-plugin-bump";
 
 var items = [];
 
 var itemsContainer;
 var pixiRenderer;
 var pixiLoaderResources;
+var playerSprite;
+
+var addLifeFunc, removeLifeFunc, addScoreFunc;
 
 function addResources(loader) {
     loader.add(mask1Src);
@@ -32,10 +36,14 @@ function addResources(loader) {
     loader.add(corona3Src);
 }
 
-function initItems(container, app) {
+function initItems(container, app, player, addLife, removeLife, addScore) {
     itemsContainer = container;
     pixiRenderer = app.renderer;
     pixiLoaderResources = app.loader.resources;
+    playerSprite = player;
+    addLifeFunc = addLife;
+    removeLifeFunc = removeLife;
+    addScoreFunc = addScore;
 }
 
 function updateItems(delta) {
@@ -50,12 +58,14 @@ function updateItemsWithName(delta, name) {
     items.forEach(item => {
         if (item.name === name) {
             updateItem(delta, item);
-            if(item.sprite.x < -100)
+            if (item.sprite.x < -100 || collideItem(item)) {
                 toBeDeleted.push(item);
+            }
+
             else
                 lastItem = item;
         }
-            
+
     });
 
     toBeDeleted.forEach(item => {
@@ -70,6 +80,21 @@ function updateItemsWithName(delta, name) {
 
 }
 
+function collideItem(item) {
+    let b = new PIXI.extras.Bump.Bump();
+    let collide = b.hit(playerSprite, item.sprite);
+
+    if (collide) {
+        if (item.name === 'corona')
+            removeLifeFunc();
+        else if (item.name === 'mask')
+            addScoreFunc();
+        else if (item.name === 'soap')
+            addLifeFunc();
+    }
+    return collide;
+}
+
 function updateItem(delta, item) {
     item.sprite.x -= delta * 5;
 }
@@ -79,7 +104,7 @@ function addItem(name) {
     switch (name) {
         case 'corona':
             sprite.texture = pixiLoaderResources[corona1Src].texture;
-            sprite.scale.set(0.4);
+            sprite.scale.set(0.25);
             break;
         case 'mask':
             sprite.texture = pixiLoaderResources[mask1Src].texture;

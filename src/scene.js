@@ -1,29 +1,39 @@
-import background1Src from './media/Hintergrund_neu1.png';
-import background2Src from './media/Hintergrund_neu2.png';
-import background3Src from './media/Hintergrund_neu3.png';
-import background4Src from './media/Hintergrund_neu4.png';
+import mountainBackgroundSrc from './media/scenes/mountain/background.png';
+import campingBackgroundSrc from './media/scenes/camping/background.png';
+import seaBackground0Src from './media/scenes/sea/background0.png';
+import seaBackground1Src from './media/scenes/sea/background1.png';
+import seaWave0Src from './media/scenes/sea/wave0.png';
+import seaWave1Src from './media/scenes/sea/wave1.png';
+import farmBackgroundSrc from './media/scenes/farm/background.png';
 import windmillSrc from './media/windmill.png';
+import { whaleSrcs } from './animations.js';
+//import {lib} from './media/scenes/camping/campfire.js'
 
-import * as PIXI from 'pixi.js'
+import 'pixi.js'
+//import 'pixi-animate';
 
 var pixiContainer;
 var pixiLoaderResources;
 var pixiRenderer;
 var scenes = [];
 
-function addResources(loader) {
-    loader.add(background1Src);
-    loader.add(background2Src);
-    loader.add(background3Src);
-    loader.add(background4Src);
+function addResources(app, loader) {
+    loader.add(mountainBackgroundSrc);
+    loader.add(campingBackgroundSrc);
+    loader.add(seaBackground0Src);
+    loader.add(seaBackground1Src);
+    loader.add(seaWave0Src);
+    loader.add(seaWave1Src);
+    loader.add(farmBackgroundSrc);
     loader.add(windmillSrc);
+    whaleSrcs.forEach(src => loader.add(src ));
 }
 function initScenes(container, app) {
     pixiContainer = container;
     pixiLoaderResources = app.loader.resources;
     pixiRenderer = app.renderer;
 
-    createScene('hintergrund1'); // create first scene, others are added in updateScenes()
+    createScene('camping'); // create first scene, others are added in updateScenes()
 }
 
 function updateScenes(delta) {
@@ -55,7 +65,7 @@ function createScene(name) {
         sceneContainer.x = 0;
     } else {
         let lastScene = scenes[scenes.length - 1];
-        sceneContainer.x = lastScene.container.x + lastScene.width;
+        sceneContainer.x = lastScene.container.x + lastScene.width - 1;
     }
 
     let scene = {
@@ -81,13 +91,18 @@ function updateScene(scene, delta) {
         case 'windrad':
             scene.windmillSprite.rotation += 0.01 * delta;
             break;
-        case 'hintergrund1':
+        case 'mountain':
             scene.windmillSprite1.rotation += 0.01 * delta;
             scene.windmillSprite2.rotation += 0.01 * delta;
             scene.windmillSprite3.rotation += 0.01 * delta;
             break;
         case 'hintergrund2':
             scene.windmillSprite1.rotation += 0.01 * delta;
+            break;
+        case 'sea':
+            scene.wave0Sprite.position.x = Math.sin(Date.now() / 2000) * scene.width * 0.01;
+            scene.wave1Sprite.position.y = Math.sin(-Date.now() / 500) * scene.width * 0.001;
+            //   scene.whaleSprite.update();
             break;
         default:
             break;
@@ -96,12 +111,12 @@ function updateScene(scene, delta) {
 
 function buildScene(scene) {
     if (scene.name === 'alt') {
-        let sprite = new PIXI.Sprite(pixiLoaderResources[background1Src].texture); // TODO: Select texture from scene name
+        let sprite = new PIXI.Sprite(pixiLoaderResources[background1Src].texture); 
         scene.container.addChild(sprite);
         scene.width = sprite.width;
         Object.assign(scene, { backgroundSprite: sprite });
     } else if (scene.name === 'windrad') {
-        let backgroundSprite = new PIXI.Sprite(pixiLoaderResources[background2Src].texture); // TODO: Select texture from scene name
+        let backgroundSprite = new PIXI.Sprite(pixiLoaderResources[background2Src].texture);
         scene.width = backgroundSprite.width;
         scene.container.addChild(backgroundSprite);
 
@@ -111,8 +126,8 @@ function buildScene(scene) {
         scene.container.addChild(windmillSprite);
 
         Object.assign(scene, { backgroundSprite: backgroundSprite, windmillSprite: windmillSprite });
-    } else if(scene.name === 'hintergrund1') {
-        let sprite = new PIXI.Sprite(pixiLoaderResources[background1Src].texture); // TODO: Select texture from scene name
+    } else if(scene.name === 'mountain') {
+        let sprite = new PIXI.Sprite(pixiLoaderResources[mountainBackgroundSrc].texture);
         scene.container.addChild(sprite);
         scene.width = sprite.width;
 
@@ -134,8 +149,8 @@ function buildScene(scene) {
         scene.container.addChild(windmillSprite3);
         Object.assign(scene, { backgroundSprite: sprite, windmillSprite1: windmillSprite1, windmillSprite2: windmillSprite2, windmillSprite3: windmillSprite3 });
 
-    } else if(scene.name === 'hintergrund2') {
-        let sprite = new PIXI.Sprite(pixiLoaderResources[background2Src].texture); // TODO: Select texture from scene name
+    } else if(scene.name === 'camping') {
+        let sprite = new PIXI.Sprite(pixiLoaderResources[campingBackgroundSrc].texture); 
         scene.container.addChild(sprite);
         scene.width = sprite.width;
 
@@ -145,16 +160,38 @@ function buildScene(scene) {
         windmillSprite1.scale.set(0.7);
         scene.container.addChild(windmillSprite1);
 
+        //let campfire = new lib.campfire();
+
         Object.assign(scene, { backgroundSprite: sprite, windmillSprite1: windmillSprite1 });
         
-    } else if(scene.name === 'hintergrund3') {
-        let sprite = new PIXI.Sprite(pixiLoaderResources[background3Src].texture); // TODO: Select texture from scene name
-        scene.container.addChild(sprite);
-        scene.width = sprite.width;
-        Object.assign(scene, { backgroundSprite: sprite });
+    } else if(scene.name === 'sea') {
+        let background0Sprite = new PIXI.Sprite(pixiLoaderResources[seaBackground0Src].texture);
+        let background1Sprite = new PIXI.Sprite(pixiLoaderResources[seaBackground1Src].texture);
+        let wave0Sprite = new PIXI.Sprite(pixiLoaderResources[seaWave0Src].texture);
+        let wave1Sprite = new PIXI.Sprite(pixiLoaderResources[seaWave1Src].texture);
+        let whaleTextures = [];
+        whaleSrcs.forEach(src => {
+            let texture = pixiLoaderResources[src].texture;
+            whaleTextures.push(texture);
+        });
+
+        let whaleSprite = new PIXI.AnimatedSprite(whaleTextures);
+        whaleSprite.loop = true;  
+        whaleSprite.position.set(500, 200) 
+        whaleSprite.animationSpeed = 0.2;  
+        whaleSprite.gotoAndPlay(0);
+        scene.container.addChild(background0Sprite);
+        scene.container.addChild(wave0Sprite);
+        scene.container.addChild(whaleSprite);
+        scene.container.addChild(wave1Sprite);
+        scene.container.addChild(background1Sprite);
+
+
+        scene.width = background1Sprite.width;
+        Object.assign(scene, { background0Sprite: background0Sprite, background1Sprite: background1Sprite, wave0Sprite: wave0Sprite, wave1Sprite: wave1Sprite, whaleSprite: whaleSprite });
         
-    } else if(scene.name === 'hintergrund4') {
-        let sprite = new PIXI.Sprite(pixiLoaderResources[background4Src].texture); // TODO: Select texture from scene name
+    } else if(scene.name === 'farm') {
+        let sprite = new PIXI.Sprite(pixiLoaderResources[farmBackgroundSrc].texture); 
         scene.container.addChild(sprite);
         scene.width = sprite.width;
         Object.assign(scene, { backgroundSprite: sprite });
@@ -164,14 +201,14 @@ function buildScene(scene) {
 
 function getNextSceneName() {
     let lastScene = scenes[scenes.length-1];
-    if(lastScene.name === 'hintergrund1')
-        return 'hintergrund2';
-    else if(lastScene.name === 'hintergrund2')
-        return 'hintergrund3';
-    else if(lastScene.name === 'hintergrund3')
-        return 'hintergrund4';
-    else if(lastScene.name === 'hintergrund4')
-        return 'hintergrund1';
+    if(lastScene.name === 'mountain')
+        return 'camping';
+    else if(lastScene.name === 'camping')
+        return 'sea';
+    else if(lastScene.name === 'sea')
+        return 'farm';
+    else if(lastScene.name === 'farm')
+        return 'mountain';
 }
 
 
