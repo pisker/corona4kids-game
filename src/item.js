@@ -14,7 +14,6 @@ import corona5Src from './media/corona5.png';
 import corona6Src from './media/corona6.png';
 
 import 'pixi.js';
-import "pixi-plugin-bump";
 
 var maskSrcs = [ mask1Src, mask2Src, mask3Src, mask4Src, mask5Src ];
 var soapSrcs = [ soap1Src, soap2Src, soap3Src];
@@ -70,7 +69,7 @@ function updateItemsWithName(delta, name) {
     items.forEach(item => {
         if (item.name === name) {
             updateItem(delta, item);
-            if (item.sprite.x + item.sprite.width < -100 || collideItem(item)) {
+            if (item.sprite.x + item.sprite.width < -100 || collideItem(item, delta)) {
                 toBeDeleted.push(item);
             }
 
@@ -99,23 +98,36 @@ function clearItems() {
     items = [];
 }
 
-function collideItem(item) {
-    let b = new PIXI.extras.Bump.Bump();
-    let collide = b.hit(playerSprite, item.sprite);
+function collideItem(item, delta) {
+    let centerPoint = new PIXI.Point(playerSprite.position.x, playerSprite.position.y + 150* playerSprite.scale.y);
+    let playerPos = playerSprite.parent.toGlobal(centerPoint); // player center point in screen px
+    let itemPos = item.sprite.getGlobalPosition(); // item center point in screen px
 
-    if (collide) {
+    let x = playerPos.x - itemPos.x;
+    let y = playerPos.y - itemPos.y;
+    let distance = x*x+y*y; // squared distance player to item
+    let collide = false;
+    if (distance < 500*itemScale*itemScale) { // collide
+        collide = true;
         if (item.name === 'corona')
             removeLifeFunc();
         else if (item.name === 'mask')
             addScoreFunc();
         else if (item.name === 'soap')
             addLifeFunc();
+    } else if(distance < 3000*itemScale*itemScale) { // move item towards player
+        let localCenterPoint = item.sprite.parent.toLocal(playerPos);
+        let localDirectionVector = new PIXI.Point(localCenterPoint.x - item.sprite.x, localCenterPoint.y - item.sprite.y);
+        let localDirectionVectorLength = Math.sqrt(localDirectionVector.x * localDirectionVector.x + localDirectionVector.y * localDirectionVector.y);
+        item.sprite.x += localDirectionVector.x / localDirectionVectorLength * 10 * delta;
+        item.sprite.y += localDirectionVector.y / localDirectionVectorLength * 10 * delta;
     }
+
     return collide;
 }
 
 function updateItem(delta, item) {
-    item.sprite.x -= delta * 5;
+    item.sprite.x -= delta * 6;
 }
 
 function addItem(name) {
@@ -123,7 +135,6 @@ function addItem(name) {
     let propability = 2000;
     let srcIndex;
     let elapsedSecs = (Date.now() - window.gameStart) / 1000;
-    console.log(elapsedSecs);
     switch (name) {
         case 'corona':
             srcIndex = Math.floor(Math.random() * coronaSrcs.length);
@@ -150,13 +161,20 @@ function addItem(name) {
             lastItem = item;
     });
 
-    let offsetX = (lastItem === null) ? 300 : lastItem.sprite.x;
+    if(lastItem === null) {
+        console.log('add offset for item %s', name);
+    }
+    let offsetX = (lastItem === null) ? 500 : lastItem.sprite.x;
     sprite.x = offsetX + Math.random() * propability * itemScale;
     sprite.y = Math.random() * pixiRenderer.height;
-
+    sprite.anchor.set(0.5);
     itemsContainer.addChild(sprite);
     let obj = { sprite: sprite, name: name };
     items.push(obj);
 }
 
-export { addResources, initItems, updateItems, clearItems };
+function setItemScale(scale) {
+    itemScale = scale;
+}
+
+export { addResources, initItems, updateItems, clearItems, setItemScale };

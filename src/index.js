@@ -2,9 +2,9 @@
 // when calling the initGame function,
 // the actual game, game engine, textures etc. are lazy-loaded
 
-export async function initGame(itemScale) {
+export async function initGame(itemScale, speed) {
     let {initGame} = await import("./game.js"); // lazy load actual game here
-    initGame(itemScale);
+    initGame(itemScale, speed);
 }
 
 if(document.getElementById("gameContent") === null) { // should be for testing purposes only!
@@ -18,4 +18,4 @@ if(document.getElementById("gameContent") === null) { // should be for testing p
     element.style.height = "500px";
     document.body.appendChild(element);
 }
-initGame(2); // TODO: this should be called when the game is about to be played
+initGame(2.5, 0.4); // TODO: this should be called when the game is about to be played

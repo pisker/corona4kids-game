@@ -9,7 +9,6 @@ import scoreScreenButton2Src from './media/scoreScreenButton2.png';
 
 import 'pixi.js'
 import * as Keyboard from 'pixi.js-keyboard';
-import * as Mouse from 'pixi.js-mouse';
 import 'pixi-text-input';
 
 import * as SceneManager from './scene.js';
@@ -36,11 +35,16 @@ const backgroundHeightPx = 500;
 const scoreScreenHeightPx = 700;
 var itemScale;
 
+var pointerDown = false;
+
 var score = 0;
 var lifes = 1;
 
-async function initGame(scale) {
-    itemScale = scale;
+var speed;
+
+async function initGame(_itemScale, _speed) {
+    speed = _speed;
+    itemScale = _itemScale;
     let gameElement = document.getElementById("gameContent");
     app = new PIXI.Application({
         autoResize: true,
@@ -102,7 +106,7 @@ function setup() {
     app.stage.addChild(gameEndedContainer);
     scoreScreenSprite = new PIXI.Sprite(app.loader.resources[scoreScreenSrc].texture);
     gameEndedContainer.addChild(scoreScreenSprite);
-    scoreScreenHighscoreText = new PIXI.Text('0', { fontFamily: 'Arial', fontSize: 50 });
+    scoreScreenHighscoreText = new PIXI.Text('0', { fontFamily: 'Arial', fontSize: 50, align: 'center' });
     scoreScreenHighscoreText.position.set(750, 320);
     gameEndedContainer.addChild(scoreScreenHighscoreText);
     playerNameBox = new PIXI.TextInput({
@@ -144,6 +148,17 @@ function setup() {
         update(delta);
     });
 
+    scenesContainer.interactive = true;
+    scenesContainer.on('pointerdown', function () {
+        pointerDown = true;
+    });
+    scenesContainer.on('pointerup', function () {
+        pointerDown = false;
+    });
+    scoreScreenButton.on('pointerupoutside', () => {
+        pointerDown = false;
+    });
+
 
 }
 var rot = 0;
@@ -154,30 +169,28 @@ function update(delta) {
         delta = 0;
     }
     if (lifes > 0) {
-        SceneManager.updateScenes(delta);
-        ItemManager.updateItems(delta);
+        SceneManager.updateScenes(delta * itemScale * speed);
+        ItemManager.updateItems(delta  * itemScale * speed);
     }
-
 
     rot += 0.01 * delta;
     ballon.rotation = 0.5 * Math.sin(rot) + 0.2;
 
-    if (Keyboard.isKeyDown('Space') || Mouse.isButtonDown(Mouse.Button.LEFT)) {
-        a = -0.2;
+    if (Keyboard.isKeyDown('Space') || pointerDown) {
+        a = -0.4;
     } else {
-        a = 0.1;
+        a = 0.2;
     }
     if (ballon.y > app.renderer.height)
-        a = -  100;
+        a = -  200;
     else if (ballon.y < -50)
-        a = 100;
+        a = 200;
     v += a * delta;
-    const maxSpeed = 3;
+    const maxSpeed = 6;
     v = Math.max(v, -maxSpeed);
     v = Math.min(v, maxSpeed);
-    ballon.y += v * delta;
+    ballon.y += v * delta * speed;
     Keyboard.update();
-    Mouse.update();
 }
 
 function resize() {
