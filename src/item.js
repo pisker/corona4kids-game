@@ -9,9 +9,16 @@ import soap3Src from './media/soap3.png';
 import corona1Src from './media/corona1.png';
 import corona2Src from './media/corona2.png';
 import corona3Src from './media/corona3.png';
+import corona4Src from './media/corona4.png';
+import corona5Src from './media/corona5.png';
+import corona6Src from './media/corona6.png';
 
 import 'pixi.js';
 import "pixi-plugin-bump";
+
+var maskSrcs = [ mask1Src, mask2Src, mask3Src, mask4Src, mask5Src ];
+var soapSrcs = [ soap1Src, soap2Src, soap3Src];
+var coronaSrcs = [ corona1Src, corona2Src, corona3Src, corona4Src, corona5Src, corona6Src];
 
 var items = [];
 
@@ -21,6 +28,7 @@ var pixiLoaderResources;
 var playerSprite;
 
 var addLifeFunc, removeLifeFunc, addScoreFunc;
+var itemScale;
 
 function addResources(loader) {
     loader.add(mask1Src);
@@ -34,9 +42,12 @@ function addResources(loader) {
     loader.add(corona1Src);
     loader.add(corona2Src);
     loader.add(corona3Src);
+    loader.add(corona4Src);
+    loader.add(corona5Src);
+    loader.add(corona6Src);
 }
 
-function initItems(container, app, player, addLife, removeLife, addScore) {
+function initItems(container, app, player, addLife, removeLife, addScore, scale) {
     itemsContainer = container;
     pixiRenderer = app.renderer;
     pixiLoaderResources = app.loader.resources;
@@ -44,6 +55,7 @@ function initItems(container, app, player, addLife, removeLife, addScore) {
     addLifeFunc = addLife;
     removeLifeFunc = removeLife;
     addScoreFunc = addScore;
+    itemScale = scale;
 }
 
 function updateItems(delta) {
@@ -58,7 +70,7 @@ function updateItemsWithName(delta, name) {
     items.forEach(item => {
         if (item.name === name) {
             updateItem(delta, item);
-            if (item.sprite.x < -100 || collideItem(item)) {
+            if (item.sprite.x + item.sprite.width < -100 || collideItem(item)) {
                 toBeDeleted.push(item);
             }
 
@@ -78,6 +90,13 @@ function updateItemsWithName(delta, name) {
         lastItem = items[items.length - 1];
     }
 
+}
+
+function clearItems() {
+    items.forEach(item => {
+        itemsContainer.removeChild(item.sprite);
+    });
+    items = [];
 }
 
 function collideItem(item) {
@@ -101,18 +120,28 @@ function updateItem(delta, item) {
 
 function addItem(name) {
     let sprite = new PIXI.Sprite();
+    let propability = 2000;
+    let srcIndex;
+    let elapsedSecs = (Date.now() - window.gameStart) / 1000;
+    console.log(elapsedSecs);
     switch (name) {
         case 'corona':
-            sprite.texture = pixiLoaderResources[corona1Src].texture;
-            sprite.scale.set(0.25);
+            srcIndex = Math.floor(Math.random() * coronaSrcs.length);
+            sprite.texture = pixiLoaderResources[coronaSrcs[srcIndex]].texture;
+            sprite.scale.set(0.25 * itemScale);
+            propability = 1000;
             break;
         case 'mask':
-            sprite.texture = pixiLoaderResources[mask1Src].texture;
-            sprite.scale.set(0.2);
+            srcIndex = Math.floor(Math.random() * maskSrcs.length);
+            sprite.texture = pixiLoaderResources[maskSrcs[srcIndex]].texture;
+            sprite.scale.set(0.15 * itemScale);
+            propability  = 500;
             break;
         case 'soap':
-            sprite.texture = pixiLoaderResources[soap1Src].texture;
-            sprite.scale.set(0.2);
+            srcIndex = Math.floor(Math.random() * soapSrcs.length);
+            sprite.texture = pixiLoaderResources[soapSrcs[srcIndex]].texture;
+            sprite.scale.set(0.15 * itemScale);
+            propability = 2500;
             break;
     }
     let lastItem = null;
@@ -122,7 +151,7 @@ function addItem(name) {
     });
 
     let offsetX = (lastItem === null) ? 300 : lastItem.sprite.x;
-    sprite.x = offsetX + Math.random() * 2000;
+    sprite.x = offsetX + Math.random() * propability * itemScale;
     sprite.y = Math.random() * pixiRenderer.height;
 
     itemsContainer.addChild(sprite);
@@ -130,4 +159,4 @@ function addItem(name) {
     items.push(obj);
 }
 
-export { addResources, initItems, updateItems };
+export { addResources, initItems, updateItems, clearItems };

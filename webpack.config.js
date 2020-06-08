@@ -23,6 +23,8 @@ module.exports = {
     output: {
         filename: 'game.bundle.js',
         path: path.resolve(__dirname, 'dist'),
+        libraryTarget: 'var',
+        library: 'coronaGame',
     },
     module: {
         rules: [

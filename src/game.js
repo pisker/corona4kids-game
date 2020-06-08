@@ -3,6 +3,9 @@ import score0Src from './media/score0.png'
 import score1Src from './media/score1.png'
 import score2Src from './media/score2.png'
 import scoreMasksSrc from './media/score_masks.png'
+import scoreScreenSrc from './media/scoreScreen.png';
+import scoreScreenButton1Src from './media/scoreScreenButton1.png';
+import scoreScreenButton2Src from './media/scoreScreenButton2.png';
 
 import 'pixi.js'
 import * as Keyboard from 'pixi.js-keyboard';
@@ -23,14 +26,21 @@ var scoreLifesSprite;
 var scoreMasksSprite;
 var scoreMasksText;
 
+var scoreScreenSprite;
+var scoreScreenHighscoreText;
+var scoreScreenButton;
+
 var playerNameBox;
 
 const backgroundHeightPx = 500;
+const scoreScreenHeightPx = 700;
+var itemScale;
 
 var score = 0;
 var lifes = 1;
 
-async function initGame() {
+async function initGame(scale) {
+    itemScale = scale;
     let gameElement = document.getElementById("gameContent");
     app = new PIXI.Application({
         autoResize: true,
@@ -45,6 +55,9 @@ async function initGame() {
         .add(score0Src)
         .add(score1Src)
         .add(score2Src)
+        .add(scoreScreenSrc)
+        .add(scoreScreenButton1Src)
+        .add(scoreScreenButton2Src)
         .add(scoreMasksSrc);
 
     SceneManager.addResources(app, resLoader);
@@ -55,6 +68,10 @@ async function initGame() {
 }
 
 function setup() {
+    for(var key in app.loader.resources) 
+        app.renderer.plugins.prepare.upload(app.loader.resources[key].texture);
+
+    window.gameStart = new Date();
     // init scenes
     scenesContainer = new PIXI.Container();
     SceneManager.initScenes(scenesContainer, app);
@@ -63,10 +80,10 @@ function setup() {
     // init ballon sprite
     ballon = new PIXI.Sprite(app.loader.resources[ballonSrc].texture);
     ballon.anchor.set(0.5, 0.2);
-    ballon.scale.set(0.5);
+    ballon.scale.set(1*itemScale);
 
     itemsContainer = new PIXI.Container();
-    ItemManager.initItems(itemsContainer, app, ballon, addLife, removeLife, addScore);
+    ItemManager.initItems(itemsContainer, app, ballon, addLife, removeLife, addScore, itemScale);
     app.stage.addChild(itemsContainer);
 
     scoreLifesSprite = new PIXI.Sprite(app.loader.resources[score1Src].texture);
@@ -83,16 +100,40 @@ function setup() {
     gameEndedContainer = new PIXI.Container();
     gameEndedContainer.visible = false;
     app.stage.addChild(gameEndedContainer);
+    scoreScreenSprite = new PIXI.Sprite(app.loader.resources[scoreScreenSrc].texture);
+    gameEndedContainer.addChild(scoreScreenSprite);
+    scoreScreenHighscoreText = new PIXI.Text('0', { fontFamily: 'Arial', fontSize: 50 });
+    scoreScreenHighscoreText.position.set(750, 320);
+    gameEndedContainer.addChild(scoreScreenHighscoreText);
     playerNameBox = new PIXI.TextInput({
-        input: {},
+        input: {
+            fontFamily: 'Arial',
+            fontSize: '50px',
+            width: '200px'
+        },
         box: {
-            default: { fill: 0xE8E9F3, rounded: 16, stroke: { color: 0xCBCEE0, width: 4 } },
-            focused: { fill: 0xE1E3EE, rounded: 16, stroke: { color: 0xABAFC6, width: 4 } },
-            disabled: { fill: 0xDBDBDB, rounded: 16 }
+            default: {  },
+            focused: {  },
         }
     });
-    playerNameBox.position.set(100, 100);
+
+    playerNameBox.position.set(589, 540);
     gameEndedContainer.addChild(playerNameBox);
+    scoreScreenButton = new PIXI.Sprite(app.loader.resources[scoreScreenButton1Src].texture);
+    scoreScreenButton.interactive = true;
+    scoreScreenButton.buttonMode = true;
+    scoreScreenButton.position.set(882, 514);
+    scoreScreenButton.on('pointerdown', () => {
+        scoreScreenButton.texture = app.loader.resources[scoreScreenButton2Src].texture;
+    });
+    scoreScreenButton.on('pointerupoutside', () => {
+        scoreScreenButton.texture = app.loader.resources[scoreScreenButton1Src].texture;
+    });
+    scoreScreenButton.on('pointerup', () => {
+        resetGame();
+        scoreScreenButton.texture = app.loader.resources[scoreScreenButton1Src].texture;
+    });
+    gameEndedContainer.addChild(scoreScreenButton);
 
     resize(); // MUST BE CALLED BEFORE addChild(ballon)!
     app.stage.addChild(ballon);
@@ -131,9 +172,9 @@ function update(delta) {
     else if (ballon.y < -50)
         a = 100;
     v += a * delta;
-
-    v = Math.max(v, -2);
-    v = Math.min(v, 2);
+    const maxSpeed = 3;
+    v = Math.max(v, -maxSpeed);
+    v = Math.min(v, maxSpeed);
     ballon.y += v * delta;
     Keyboard.update();
     Mouse.update();
@@ -150,10 +191,13 @@ function resize() {
     // resize scene container
     scenesContainer.scale.set(height / backgroundHeightPx);
 
+    gameEndedContainer.scale.set(height / scoreScreenHeightPx * 0.8);
+    gameEndedContainer.x = width / 2 - gameEndedContainer.width / 2; 
+    gameEndedContainer.y = height / 2 - gameEndedContainer.height / 2;
     // resize and move ballon
     ballon.x = width * 0.3;
     ballon.y = app.stage.height / 2;
-    ballon.scale.set(0.25);
+    ballon.scale.set(0.17*itemScale);
 }
 
 function removeLife() {
@@ -167,6 +211,7 @@ function removeLife() {
     else if (lifes === 0) {
         scoreLifesSprite.texture = app.loader.resources[score0Src].texture;
         // lost game!
+        //resetGame();
         showHighscore();
     }
 }
@@ -195,6 +240,9 @@ function showHighscore() {
     scoreMasksSprite.visible = false;
     itemsContainer.visible = false;
     gameEndedContainer.visible = true;
+    const filter = new PIXI.filters.BlurFilter(8);
+    scenesContainer.filters = [filter];
+    scoreScreenHighscoreText.text = score;
 }
 
 function resetGame() {
@@ -209,6 +257,9 @@ function resetGame() {
     lifes = 0;
     addLife();
     ballon.y = app.stage.height / 2;
+    window.gameStart = new Date();
+    scenesContainer.filters = [];
+    ItemManager.clearItems();
 }
 
 export { initGame };
